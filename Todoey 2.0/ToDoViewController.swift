@@ -11,13 +11,21 @@ import UIKit
 class ToDoViewController: UITableViewController {
     var itemArray = [String]()
     
+    //MARK: - 2.1 Inicijaliziran userDefaults
+    var defaults = UserDefaults.standard
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        // MARK: - 2.3 Prikazan svako novi dodan item
+        if let items = defaults.array(forKey: "itemArray") as? [String] {
+            itemArray = items
+        }
+        
     }
     
     
-    //MARK: - 1. Tableview Datasource Methods
+    //MARK: - 1.1 Tableview Datasource Methods
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return itemArray.count
     }
@@ -30,11 +38,11 @@ class ToDoViewController: UITableViewController {
         return cell!
         
     }
-    //MARK: - 2. Tableview Delegate Methods
+    //MARK: - 1.2 Tableview Delegate Methods
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         print(itemArray[indexPath.row])
         
-        //MARK: - 4. Dodajemo/Mičemo Checkmark kad god kliknemo na ćelij
+        //MARK: - 1.4 Dodajemo/Mičemo Checkmark kad god kliknemo na ćelij
         if tableView.cellForRow(at: indexPath)?.accessoryType == .checkmark {
             tableView.cellForRow(at: indexPath)?.accessoryType = .none
         }else
@@ -42,11 +50,11 @@ class ToDoViewController: UITableViewController {
             tableView.cellForRow(at: indexPath)?.accessoryType = .checkmark
         }
         
-        //MARK: - 3. UX poboljšanje: kliknuta ćelija na tren potamni
+        //MARK: - 1.3 UX poboljšanje: kliknuta ćelija na tren potamni
         tableView.deselectRow(at: indexPath, animated: true)
     }
     
-    //MARK: - 5. Dodan gumb za dodavanje itema
+    //MARK: - 1.5 Dodan gumb za dodavanje itema
     
    
     @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
@@ -62,6 +70,10 @@ class ToDoViewController: UITableViewController {
         let action = UIAlertAction(title: "OK", style: .default) { (action) in
             if textField.text != "" {
                 self.itemArray.append(textField.text!)
+                
+                //MARK: - 2.2 Spremljen svaki novi dodani item u userDefaults.plist
+                self.defaults.set(self.itemArray, forKey: "TodoListArray")
+                
                 self.tableView.reloadData()
             }
             else {
