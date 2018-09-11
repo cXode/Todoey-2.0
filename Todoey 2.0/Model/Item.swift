@@ -8,8 +8,8 @@
 
 import Foundation
 
-
-class Item {
+//MARK: - 4.3 Moramo postaviti ovaj class kao encodable i decodable da bi on mogao bit enkodiran u plist ili json te dekodiran
+class Item : Codable{
     var title : String = ""
     var done : Bool = false
 }

@@ -11,20 +11,16 @@ import UIKit
 class ToDoViewController: UITableViewController {
     // MARK: - 3.1 Neka itemArray bude array objekata iz Item classa
     var itemArray = [Item]()
-
-    
-    
-    //MARK: - 2.1 Inicijaliziran userDefaults
-    var defaults = UserDefaults.standard
+    //MARK: - 4.1 Krecemo raditi s NSCoderom, stvaramo singleton dataFilePath
+    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist")
     
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-    
+        loadItems()
         
-        let newItem = Item()
-        
+        print("hello")
     }
     
     
@@ -65,6 +61,9 @@ class ToDoViewController: UITableViewController {
         //MARK: - 3.5 Svaki put kad kliknemo na celiju "Done" propertie iz Item classa postaje suprotan onome sto je bio
         itemArray[indexPath.row].done = !itemArray[indexPath.row].done
     
+        //MARK: - 4.3.2 prizivamo funkciju da enkodira done u Items.plist
+        self.saveItems()
+        
         //MARK: - 3.6 Reloadamo data u tableviewu jer inace nema nikakve promjene zato sto je bez reloadanje prizvano samo pri paljenju aplikacije, a ovako ce biti reloadano svakim klikom
         tableView.reloadData()
         
@@ -91,14 +90,14 @@ class ToDoViewController: UITableViewController {
             if textField.text != "" {
                 //MARK: - 3.7 Appendamo svaki Item u itemArray i sada userdefaults postaje prenapucen sa svim podatcima koje bi morao spremiti u svoj plist i zbog toga tu stajemo i krecemo raditi sa NSCoderom
                 let newItem = Item()
-                newItem.title = textField.text
+                newItem.title = textField.text!
                 
                 
                 
                 self.itemArray.append(newItem)
                 
-                //MARK: - 2.2 Spremljen svaki novi dodani item u userDefaults.plist
-                self.defaults.set(self.itemArray, forKey: "TodoListArray")
+                //MARK: - 4.3.1 prizivamo funkciju da enkodira title u Items.plist
+                self.saveItems()
                 
                 self.tableView.reloadData()
             }
@@ -125,8 +124,35 @@ class ToDoViewController: UITableViewController {
         
     }
     
+    //MARK: - 4.2 Stvaramo funkciju koja ce enkodirati nas Item class i njegove propertie u Items.plist
+    func saveItems() {
+    let encoder = PropertyListEncoder()
     
+    do{
+    let data = try encoder.encode(itemArray)
+    try data.write(to: dataFilePath!)
+    }
+    catch {
+    print(error)
+    }
+    }
     
+    //MARK: - 4.4 Stvaramo funkciju koja ce dekodirati nas plist i prikazati ga u celijama
+    func loadItems() {
+    
+        if let data = try? Data(contentsOf: self.dataFilePath!) {
+            let decoder = PropertyListDecoder()
+            do{
+            itemArray = try decoder.decode([Item].self, from: data)
+            }
+            catch {
+                print(error)
+            }
+            
+            }
+        
+    
+    }
 }
 
 
