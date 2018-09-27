@@ -7,39 +7,35 @@
 //
 
 import UIKit
-import CoreData
+import RealmSwift
 
 class CategoryTableViewController: UITableViewController {
     
-    var categoryItemArray = [Category]()
-    
-    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
-    
+    let realm = try! Realm()
+
+    var categories : Results<Category>?
+ 
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        loadItems()
+       loadCategories()
         
     }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return categoryItemArray.count
+        return categories?.count ?? 1
     }
     
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "CategoryCell")
         
-        cell?.textLabel?.text = categoryItemArray[indexPath.row].name
-        let item = categoryItemArray[indexPath.row]
+        cell?.textLabel?.text = categories?[indexPath.row].name ?? "No Categorie Added Jet"
         return cell!
     }
     
     
-//    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-//
-//    }
-    
+   
     
     
     @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
@@ -51,11 +47,12 @@ class CategoryTableViewController: UITableViewController {
         let categoryAddItemAction = UIAlertAction(title: "OK", style: .default) { (categoryAddItemAction) in
             
             if categoryTextField.text != "" {
-                let newItem = Category(context: self.context)
-                newItem.name = categoryTextField.text!
-                self.categoryItemArray.append(newItem)
-                self.saveItems()
-                self.tableView.reloadData()
+                let newCategory = Category()
+                newCategory.name = categoryTextField.text!
+                
+                
+                self.save(category: newCategory)
+              
             }
             else {
                 let newAlert = UIAlertController(title: "You must write something!", message: "", preferredStyle: .alert)
@@ -77,24 +74,20 @@ class CategoryTableViewController: UITableViewController {
         
     }
     
-    func saveItems() {
+    func save(category: Category) {
         do {
-            try context.save()
+            try realm.write {
+                realm.add(category)
+            }
         }
         catch{
         print("Error is \(error)")
         }
     }
     
-    
-    func loadItems(with request: NSFetchRequest<Category> = Category.fetchRequest()) {
-        do {
-            try context.fetch(request)
-            
-        }
-        catch {
-            print("Error is \(error)")
-        }
+
+    func loadCategories() {
+       categories = realm.objects(Category.self)
     }
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -106,27 +99,22 @@ class CategoryTableViewController: UITableViewController {
         let destinationVC = segue.destination as! ToDoViewController
         
         if let indexPath = tableView.indexPathForSelectedRow {
-            destinationVC.selectedCategory = categoryItemArray[indexPath.row]
+            destinationVC.selectedCategory = categories?[indexPath.row]
         }
     }
 }
 
 extension CategoryTableViewController : UISearchBarDelegate {
-    
+
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-        let request : NSFetchRequest<Category> = Category.fetchRequest()
-        
-        request.predicate = NSPredicate(format: "name CONTAINS %@[cd]", searchBar.text!)
-        
-        request.sortDescriptors = [NSSortDescriptor(key: "name", ascending: true)]
-        
-        loadItems(with:request)
+        categories = categories?.filter("title CONTAINS[cd] %@",  searchBar.text!).sorted(byKeyPath: "date", ascending: true)
+        tableView.reloadData()
     }
     
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         if searchBar.text?.count == 0{
-            loadItems()
-            
+            //loadItems()
+
             DispatchQueue.main.async {
                 searchBar.resignFirstResponder()
             }

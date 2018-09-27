@@ -1,15 +1,19 @@
 //
-//  Items.swift
+//  Item.swift
 //  Todoey 2.0
 //
-//  Created by Antonio Markotic on 22/08/2018.
+//  Created by Antonio Markotic on 26/09/2018.
 //  Copyright © 2018 Antonio Markotic. All rights reserved.
 //
 
 import Foundation
+import RealmSwift
 
-//MARK: - 4.3 Moramo postaviti ovaj class kao encodable i decodable da bi on mogao bit enkodiran u plist ili json te dekodiran
-class Item : Codable{
-    var title : String = ""
-    var done : Bool = false
+class Item: Object {
+    @objc dynamic var title : String = ""
+    @objc dynamic var done: Bool = false
+    @objc dynamic var date: Date?
+    
+    
+    var parentCategory = LinkingObjects(fromType: Category.self, property: "items")
 }
